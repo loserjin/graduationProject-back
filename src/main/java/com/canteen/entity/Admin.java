@@ -37,12 +37,15 @@ public class Admin implements Serializable {
     @TableField("adminName")
     private String adminName;
 
+    @NotBlank(message = "密码不能为空")
     @TableField("adminPwd")
     private String adminPwd;
 
+    @NotBlank(message = "电话不能为空")
     @TableField("adminTel")
     private String adminTel;
 
+    @NotBlank(message = "身份证不能为空")
     @TableField("adminIdcard")
     private String adminIdcard;
 
