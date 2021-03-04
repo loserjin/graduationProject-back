@@ -44,8 +44,11 @@ public class AdminController {
 //            temp.setAdminStatus(1);
 //        }
 //        BeanUtils.copyProperties(admin,temp,"adminId","adminCreatime");
-        adminService.saveOrUpdate(admin);
-        return  Result.succ(null);
+        if (admin.getAdminRole()==null||admin.getAdminRole()==0){
+            adminService.saveOrUpdate(admin);
+            return  Result.succ(null);
+        }else
+            return Result.fail("注册的管理员角色错误");
     }
 
 }
