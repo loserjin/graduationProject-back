@@ -1,6 +1,9 @@
 package com.canteen.controller;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.canteen.common.lang.Result;
 import com.canteen.entity.Admin;
 import com.canteen.service.AdminService;
@@ -33,6 +36,7 @@ public class AdminController {
        return Result.succ(admin);
     }
 
+    @RequiresAuthentication
     @PostMapping("/edit")
     public Result save(@Validated @RequestBody  Admin admin){
 //        Admin temp = null;
@@ -48,7 +52,14 @@ public class AdminController {
             adminService.saveOrUpdate(admin);
             return  Result.succ(null);
         }else
-            return Result.fail("注册的管理员角色错误");
+            return Result.fail("编辑的管理员角色错误");
+    }
+    @RequiresAuthentication
+    @GetMapping("infos")
+    public Result list (@RequestParam (defaultValue="1")Integer current,@RequestParam (defaultValue="5")Integer size){
+        Page page = new Page(current,size);
+        IPage pageDate = adminService.page(page,new QueryWrapper<Admin>().eq("adminRole",0));
+        return Result.succ(pageDate);
     }
 
 }
