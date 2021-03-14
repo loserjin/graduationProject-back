@@ -1,13 +1,14 @@
 package com.canteen.controller;
 
+
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.canteen.common.dto.LoginDto;
 import com.canteen.common.lang.Result;
 import com.canteen.entity.Admin;
 import com.canteen.service.AdminService;
 import com.canteen.util.JwtUtils;
-import org.apache.catalina.security.SecurityUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
 import javax.servlet.http.HttpServletResponse;
 
 @RestController
@@ -47,11 +47,11 @@ public class AccountController {
                 .put("adminRole",admin.getAdminRole())
                 .put("adminName",admin.getAdminName())
                 .put("adminTel",admin.getAdminTel())
-                .put("departmentId",admin.getAdminSex())
-                .put("departmentId",admin.getDepartmentId())
-                .put("departmentId",admin.getDepartmentName())
-                .put("departmentId",admin.getDepartmentfloorId())
-                .put("departmentFoor",admin.getDepartmentfloorName())
+                .put("adminSex",admin.getAdminSex())
+                .put("departmentmentId",admin.getDepartmentId())
+                .put("departmentName",admin.getDepartmentName())
+                .put("departmentfloorId",admin.getDepartmentfloorId())
+                .put("departmentfloorName",admin.getDepartmentfloorName())
                 .put("adminCreatime",admin.getAdminCreatime())
                 .put("adminStatus",admin.getAdminStatus())
                 .map()
@@ -60,7 +60,7 @@ public class AccountController {
     }
     @RequiresAuthentication
     @GetMapping("/logout")
-    public Result logout(){
+    public Result logout() {
         SecurityUtils.getSubject().logout();
         return Result.succ(null);
     }

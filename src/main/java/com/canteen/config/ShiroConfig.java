@@ -45,6 +45,8 @@ public class ShiroConfig {
         //inject sessionManager
         securityManager.setSessionManager(sessionManager);
 
+        redisCacheManager.setPrincipalIdFieldName("adminId");
+
         // inject redisCacheManager
         securityManager.setCacheManager(redisCacheManager);
         return securityManager;
