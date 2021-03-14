@@ -14,6 +14,8 @@ import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * <p>
  *  前端控制器
@@ -54,6 +56,18 @@ public class AdminController {
         }else
             return Result.fail("编辑的管理员角色错误");
     }
+
+//    @RequiresAuthentication
+//    @PostMapping("/edit")
+//    public Result save(@Validated @RequestBody List<Admin> list){
+//        for (Admin admin:list){
+//            if (admin.getAdminRole()==null||admin.getAdminRole()==0) {
+//                adminService.saveOrUpdate(admin);
+//            }
+//        }
+//        return Result.succ(null);
+//    }
+
     @RequiresAuthentication
     @GetMapping("infos")
     public Result list (@RequestParam (defaultValue="1")Integer current,@RequestParam (defaultValue="5")Integer size){
