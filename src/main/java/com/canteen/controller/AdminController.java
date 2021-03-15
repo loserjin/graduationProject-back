@@ -31,10 +31,9 @@ public class AdminController {
     AdminService adminService;
 
     @RequiresAuthentication
-
-    @GetMapping("/index")
-    public Result index(){
-       Admin admin= adminService.getById(2);
+    @GetMapping("/info")
+    public Result index(@RequestParam Integer adminId){
+       Admin admin= adminService.getById(adminId);
        return Result.succ(admin);
     }
 
