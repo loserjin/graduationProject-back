@@ -34,26 +34,18 @@ public class AdminController {
     @GetMapping("/info")
     public Result index(@RequestParam Integer adminId){
        Admin admin= adminService.getById(adminId);
+       Assert.notNull(admin,"该记录不存在");
        return Result.succ(admin);
     }
 
     @RequiresAuthentication
     @PostMapping("/edit")
     public Result save(@Validated @RequestBody  Admin admin){
-//        Admin temp = null;
-//        if (admin.getAdminId()!=null){
-//            temp=adminService.getById(admin.getAdminId());
-//            Assert.isTrue(temp.getAdminStatus()==1,"没有权限编辑");
-//        }else{
-//            temp=new Admin();
-//            temp.setAdminStatus(1);
-//        }
-//        BeanUtils.copyProperties(admin,temp,"adminId","adminCreatime");
         if (admin.getAdminRole()==null||admin.getAdminRole()==0){
             adminService.saveOrUpdate(admin);
             return  Result.succ(null);
         }else
-            return Result.fail("编辑的管理员角色错误");
+            return Result.fail("没有权限编辑");
     }
 
 //    @RequiresAuthentication
@@ -75,4 +67,12 @@ public class AdminController {
         return Result.succ(pageDate);
     }
 
+    @RequiresAuthentication
+    @PostMapping("delect")
+    public  Result delect(@RequestParam Integer adminId){
+        Admin admin= adminService.getById(adminId);
+        adminService.removeById(adminId);
+        Assert.notNull(admin,"该条记录不存在");
+        return Result.succ("删除成功");
+    }
 }

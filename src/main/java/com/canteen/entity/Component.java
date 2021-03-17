@@ -10,7 +10,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author 毕业设计
@@ -47,5 +47,9 @@ public class Component implements Serializable {
     @TableField("componentPic")
     private String componentPic;
 
+    @TableField("adminId")
+    private Integer adminId;
 
+    @TableField("adminName")
+    private String adminName;
 }

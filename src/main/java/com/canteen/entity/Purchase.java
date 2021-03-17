@@ -5,13 +5,15 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.TableField;
 import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author 毕业设计
@@ -72,9 +74,16 @@ public class Purchase implements Serializable {
     @TableField("departmentfloorName")
     private String departmentfloorName;
 
+    @TableField("adminId")
+    private Integer adminId;
+
+    @TableField("adminName")
+    private String adminName;
+
     /**
      * 创建时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @TableField("purchaseCreatime")
     private LocalDateTime purchaseCreatime;
 

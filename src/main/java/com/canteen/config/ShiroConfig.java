@@ -1,5 +1,6 @@
 package com.canteen.config;
 
+
 import com.canteen.shiro.AccountRealm;
 import com.canteen.shiro.JwtFilter;
 import org.apache.shiro.mgt.SecurityManager;
@@ -37,8 +38,8 @@ public class ShiroConfig {
 
     @Bean
     public DefaultWebSecurityManager securityManager(AccountRealm accountRealm,
-                                                   SessionManager sessionManager,
-                                                   RedisCacheManager redisCacheManager) {
+                                                     SessionManager sessionManager,
+                                                     RedisCacheManager redisCacheManager) {
 
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager(accountRealm);
 
@@ -46,7 +47,6 @@ public class ShiroConfig {
         securityManager.setSessionManager(sessionManager);
 
         redisCacheManager.setPrincipalIdFieldName("adminId");
-
         // inject redisCacheManager
         securityManager.setCacheManager(redisCacheManager);
         return securityManager;

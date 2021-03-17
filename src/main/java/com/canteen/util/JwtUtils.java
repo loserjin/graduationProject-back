@@ -1,5 +1,6 @@
 package com.canteen.util;
 
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,7 +17,7 @@ import java.util.Date;
 @Slf4j
 @Data
 @Component
-@ConfigurationProperties(prefix = "markerhub.jwt")
+@ConfigurationProperties(prefix = "canteen.jwt")
 public class JwtUtils {
 
     private String secret;
@@ -26,14 +27,14 @@ public class JwtUtils {
     /**
      * 生成jwt token
      */
-    public String generateToken(long userId) {
+    public String generateToken(Integer adminId) {
         Date nowDate = new Date();
         //过期时间
         Date expireDate = new Date(nowDate.getTime() + expire * 1000);
 
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
-                .setSubject(userId+"")
+                .setSubject(adminId+"")
                 .setIssuedAt(nowDate)
                 .setExpiration(expireDate)
                 .signWith(SignatureAlgorithm.HS512, secret)
