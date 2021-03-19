@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.canteen.common.lang.Result;
 import com.canteen.entity.Admin;
 import com.canteen.service.AdminService;
+import com.canteen.util.ShiroUtils;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,7 @@ public class AdminController {
     @RequiresAuthentication
     @PostMapping("/edit")
     public Result save(@Validated @RequestBody  Admin admin){
-        if (admin.getAdminRole()==null||admin.getAdminRole()==0){
+        if (ShiroUtils.getProfile().getAdminRole().equals(1)){
             adminService.saveOrUpdate(admin);
             return  Result.succ(null);
         }else
@@ -61,18 +62,24 @@ public class AdminController {
 
     @RequiresAuthentication
     @GetMapping("infos")
-    public Result list (@RequestParam (defaultValue="1")Integer current,@RequestParam (defaultValue="5")Integer size){
+    public Result list (@RequestParam (defaultValue="1")Integer current,
+                        @RequestParam (defaultValue="5")Integer size,
+                        @RequestParam (defaultValue = "")String adminName){
         Page page = new Page(current,size);
-        IPage pageDate = adminService.page(page,new QueryWrapper<Admin>().eq("adminRole",0));
+        IPage pageDate = adminService.page(page,new QueryWrapper<Admin>().eq("adminRole",0).like("adminName", adminName));
         return Result.succ(pageDate);
     }
 
     @RequiresAuthentication
     @PostMapping("delect")
     public  Result delect(@RequestParam Integer adminId){
-        Admin admin= adminService.getById(adminId);
-        adminService.removeById(adminId);
-        Assert.notNull(admin,"该条记录不存在");
-        return Result.succ("删除成功");
+        if (ShiroUtils.getProfile().getAdminRole().equals(1)){
+            Admin admin= adminService.getById(adminId);
+            adminService.removeById(adminId);
+            Assert.notNull(admin,"该条记录不存在");
+            return Result.succ("删除成功");
+        }else
+            return Result.fail("没有权限");
+
     }
 }

@@ -48,10 +48,22 @@ public class PurchaseController {
     public Result list(
             @RequestParam(defaultValue = "1") Integer current,
             @RequestParam(defaultValue = "5") Integer size,
-            @RequestParam(defaultValue = "") String date) {
+            @RequestParam(defaultValue = "") String date,
+                @RequestParam(defaultValue = "") String departmentName,
+            @RequestParam(defaultValue = "") String departmentfloorName) {
         Page page = new Page(current, size);
-        IPage pageDate = purchaseService.page(page, new QueryWrapper<Purchase>().like("purchaseCreatime", date));
+        IPage pageDate = purchaseService.page(page, new QueryWrapper<Purchase>().like("purchaseCreatime", date)
+                .like("departmentName",departmentName)
+                .like("departmentfloorName",departmentfloorName));
         return Result.succ(pageDate);
+    }
+
+    @RequiresAuthentication
+    @GetMapping("/info")
+    public Result index(@RequestParam Integer purchaseId){
+        Purchase purchase= purchaseService.getById(purchaseId);
+        Assert.notNull(purchase,"该记录不存在");
+        return Result.succ(purchase);
     }
 
     @RequiresAuthentication
@@ -125,8 +137,12 @@ public class PurchaseController {
     @PostMapping("delect")
     public  Result delect(@RequestParam Integer purchaseId){
         Purchase purchase=purchaseService.getById(purchaseId);
-       purchaseService.removeById(purchaseId);
-        Assert.notNull(purchase,"该条记录不存在");
-        return Result.succ("null");
+        if (ShiroUtils.getProfile().getAdminRole().equals(1)||purchase.getDepartmentfloorId().equals(ShiroUtils.getProfile().getDepartmentfloorId())){
+            purchaseService.removeById(purchaseId);
+            Assert.notNull(purchase,"该条记录不存在");
+            return Result.succ("null");
+        }else
+            return Result.fail("没有权限");
+
     }
 }
