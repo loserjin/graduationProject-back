@@ -74,11 +74,13 @@ public class Dailymenu implements Serializable {
     @TableField("departmentName")
     private String departmentName;
 
+    @TableField("menuComponent")
+    private String menuComponent;
     /**
      * 所属饭堂楼层ID
      */
-    @TableField("departmentfoorId")
-    private Integer departmentfoorId;
+    @TableField("departmentfloorId")
+    private Integer departmentfloorId;
 
     /**
      * 所属饭堂楼层名字

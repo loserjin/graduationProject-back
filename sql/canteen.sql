@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 19/03/2021 17:30:19
+ Date: 22/03/2021 17:59:03
 */
 
 SET NAMES utf8mb4;
@@ -41,7 +41,7 @@ CREATE TABLE `admin`  (
   INDEX `adminId`(`adminId`, `adminName`) USING BTREE,
   INDEX `admin_ibfk_2`(`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) USING BTREE,
   CONSTRAINT `admin_ibfk_2` FOREIGN KEY (`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) REFERENCES `departmentfloor` (`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 28 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of admin
@@ -72,6 +72,7 @@ CREATE TABLE `component`  (
 -- ----------------------------
 -- Records of component
 -- ----------------------------
+INSERT INTO `component` VALUES (1, '叉烧', 20, NULL, 1, 'admin');
 
 -- ----------------------------
 -- Table structure for dailymenu
@@ -84,28 +85,24 @@ CREATE TABLE `dailymenu`  (
   `menuMoney` int(0) NOT NULL COMMENT '菜的金额',
   `menuFMoney` int(0) NOT NULL COMMENT '应付定金',
   `menuPic` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '菜的图片',
+  `menuComponent` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `departmentId` int(0) NOT NULL COMMENT '所属饭堂ID',
   `departmentName` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '所属饭堂名字',
-  `departmentfoorId` int(0) NOT NULL COMMENT '所属饭堂楼层ID',
+  `departmentfloorId` int(0) NOT NULL COMMENT '所属饭堂楼层ID',
   `departmentfloorName` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '所属饭堂楼层名字',
   `typeId` int(0) NOT NULL,
   `typeName` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `dailymenuCreatime` datetime(0) NOT NULL COMMENT '生成时间',
+  `dailymenuCreatime` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '生成时间',
   PRIMARY KEY (`dailymenuId`) USING BTREE,
-  INDEX `departmentfoorId`(`departmentfoorId`, `departmentfloorName`) USING BTREE,
-  INDEX `menuId`(`menuId`, `menuName`, `menuMoney`, `menuFMoney`) USING BTREE,
-  INDEX `menuPic`(`menuPic`) USING BTREE,
-  INDEX `typeId`(`typeId`, `typeName`) USING BTREE,
-  INDEX `departmentId`(`departmentId`, `departmentName`, `departmentfoorId`, `departmentfloorName`) USING BTREE,
-  CONSTRAINT `dailymenu_ibfk_3` FOREIGN KEY (`menuId`, `menuName`, `menuMoney`, `menuFMoney`) REFERENCES `menu` (`menuId`, `menuName`, `menuMoney`, `menuFMoney`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `dailymenu_ibfk_4` FOREIGN KEY (`menuPic`) REFERENCES `menu` (`menuPic`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `dailymenu_ibfk_5` FOREIGN KEY (`typeId`, `typeName`) REFERENCES `type` (`typeId`, `typeName`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `dailymenu_ibfk_6` FOREIGN KEY (`departmentId`, `departmentName`, `departmentfoorId`, `departmentfloorName`) REFERENCES `departmentfloor` (`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+  INDEX `menuId`(`menuId`, `menuName`, `menuMoney`, `menuFMoney`, `menuPic`, `menuComponent`, `departmentId`, `departmentName`, `departmentfloorId`, `departmentfloorName`, `typeId`, `typeName`) USING BTREE,
+  CONSTRAINT `dailymenu_ibfk_1` FOREIGN KEY (`menuId`, `menuName`, `menuMoney`, `menuFMoney`, `menuPic`, `menuComponent`, `departmentId`, `departmentName`, `departmentfloorId`, `departmentfloorName`, `typeId`, `typeName`) REFERENCES `menu` (`menuId`, `menuName`, `menuMoney`, `menuFMoney`, `menuPic`, `menuComponent`, `departmentId`, `departmentName`, `departmentfloorId`, `departmentfloorName`, `typeId`, `typeName`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of dailymenu
 -- ----------------------------
+INSERT INTO `dailymenu` VALUES (1, 2, '红烧邱鹏', 6, 3, '123', NULL, 1, '全部', 1, '全部', 1, '全部', '2021-03-20 17:56:05');
+INSERT INTO `dailymenu` VALUES (2, 2, '红烧邱鹏', 6, 3, '123', '123', 1, '全部', 1, '全部', 1, '全部', '2021-03-21 20:59:17');
 
 -- ----------------------------
 -- Table structure for department
@@ -116,7 +113,7 @@ CREATE TABLE `department`  (
   `departmentName` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '饭堂名称',
   PRIMARY KEY (`departmentId`) USING BTREE,
   INDEX `departmentId`(`departmentId`, `departmentName`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of department
@@ -135,12 +132,12 @@ CREATE TABLE `departmentfloor`  (
   `departmentfloorName` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '楼层名字',
   `departmentId` int(0) NOT NULL COMMENT '所属饭堂ID',
   `departmentName` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '所属饭堂名字',
-  PRIMARY KEY (`departmentfloorName`) USING BTREE,
+  PRIMARY KEY (`departmentfloorId`) USING BTREE,
   INDEX `departmentfloorId`(`departmentfloorId`, `departmentfloorName`) USING BTREE,
   INDEX `departmentId`(`departmentId`, `departmentName`) USING BTREE,
   INDEX `departmentfloorId_2`(`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) USING BTREE,
   CONSTRAINT `departmentfloor_ibfk_1` FOREIGN KEY (`departmentId`, `departmentName`) REFERENCES `department` (`departmentId`, `departmentName`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of departmentfloor
@@ -150,6 +147,7 @@ INSERT INTO `departmentfloor` VALUES (2, '鸿园1楼', 2, '鸿园');
 INSERT INTO `departmentfloor` VALUES (3, '鸿园2楼', 2, '鸿园');
 INSERT INTO `departmentfloor` VALUES (5, '泽园1楼', 3, '泽园');
 INSERT INTO `departmentfloor` VALUES (6, '泽圆2楼', 3, '泽园');
+INSERT INTO `departmentfloor` VALUES (8, '鹏园1楼', 4, '鹏园');
 
 -- ----------------------------
 -- Table structure for menu
@@ -161,33 +159,28 @@ CREATE TABLE `menu`  (
   `menuMoney` int(0) NOT NULL COMMENT '实际金额',
   `menuFMoney` int(0) NOT NULL COMMENT '应付定金',
   `menuPic` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '菜的图片',
-  `menuComponent` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '配料',
+  `menuComponent` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '配料',
   `departmentId` int(0) NOT NULL COMMENT '所属饭堂ID',
   `departmentName` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '所属楼层',
   `departmentfloorId` int(0) NOT NULL,
-  `departmentfloorName` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `departmentfloorName` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `typeId` int(0) NOT NULL,
   `typeName` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `adminId` int(0) NOT NULL COMMENT '创建管理员ID',
   `adminName` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `menuCreatime` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
   PRIMARY KEY (`menuId`) USING BTREE,
-  INDEX `departmentId`(`departmentId`, `departmentName`) USING BTREE,
+  INDEX `typeId`(`typeId`, `typeName`, `departmentId`, `departmentName`, `departmentfloorId`, `departmentfloorName`) USING BTREE,
   INDEX `adminId`(`adminId`, `adminName`) USING BTREE,
-  INDEX `menuId`(`menuId`, `menuName`, `menuPic`, `menuFMoney`, `menuMoney`) USING BTREE,
-  INDEX `menuId_2`(`menuId`, `menuName`) USING BTREE,
-  INDEX `menuId_3`(`menuId`, `menuName`, `menuMoney`, `menuFMoney`) USING BTREE,
-  INDEX `menuPic`(`menuPic`) USING BTREE,
-  INDEX `typeId`(`typeId`, `typeName`) USING BTREE,
-  INDEX `menu_ibfk_2`(`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) USING BTREE,
-  CONSTRAINT `menu_ibfk_2` FOREIGN KEY (`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) REFERENCES `departmentfloor` (`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `menu_ibfk_3` FOREIGN KEY (`adminId`, `adminName`) REFERENCES `admin` (`adminId`, `adminName`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `menu_ibfk_4` FOREIGN KEY (`typeId`, `typeName`) REFERENCES `type` (`typeId`, `typeName`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+  INDEX `menuId`(`menuId`, `menuName`, `menuMoney`, `menuFMoney`, `menuPic`, `menuComponent`, `departmentId`, `departmentName`, `departmentfloorId`, `departmentfloorName`, `typeId`, `typeName`) USING BTREE,
+  CONSTRAINT `menu_ibfk_1` FOREIGN KEY (`typeId`, `typeName`, `departmentId`, `departmentName`, `departmentfloorId`, `departmentfloorName`) REFERENCES `type` (`typeId`, `typeName`, `departmentId`, `departmentName`, `departmentfloorId`, `departmentfloorName`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `menu_ibfk_2` FOREIGN KEY (`adminId`, `adminName`) REFERENCES `admin` (`adminId`, `adminName`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of menu
 -- ----------------------------
+INSERT INTO `menu` VALUES (2, '红烧邱鹏', 6, 3, '123', '123', 1, '全部', 1, '全部', 1, '全部', 27, 'admin07', '2021-03-21 16:57:42');
 
 -- ----------------------------
 -- Table structure for purchase
@@ -213,7 +206,7 @@ CREATE TABLE `purchase`  (
   INDEX `purchase_ibfk_1`(`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) USING BTREE,
   CONSTRAINT `purchase_ibfk_1` FOREIGN KEY (`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) REFERENCES `departmentfloor` (`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `purchase_ibfk_2` FOREIGN KEY (`adminId`, `adminName`) REFERENCES `admin` (`adminId`, `adminName`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of purchase
@@ -237,13 +230,16 @@ CREATE TABLE `type`  (
   INDEX `typeId`(`typeId`, `typeName`) USING BTREE,
   INDEX `adminId`(`adminId`, `adminName`) USING BTREE,
   INDEX `type_ibfk_2`(`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) USING BTREE,
+  INDEX `typeId_2`(`typeId`, `typeName`, `departmentId`, `departmentName`, `departmentfloorId`, `departmentfloorName`) USING BTREE,
   CONSTRAINT `type_ibfk_2` FOREIGN KEY (`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) REFERENCES `departmentfloor` (`departmentfloorId`, `departmentfloorName`, `departmentId`, `departmentName`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `type_ibfk_3` FOREIGN KEY (`adminId`, `adminName`) REFERENCES `admin` (`adminId`, `adminName`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of type
 -- ----------------------------
+INSERT INTO `type` VALUES (1, '全部', 1, '全部', 1, '全部', 1, 'admin');
+INSERT INTO `type` VALUES (3, '清蒸系列', 4, '鹏园', 8, '鹏园1楼', 1, 'admin');
 
 -- ----------------------------
 -- Table structure for userorder
@@ -259,7 +255,7 @@ CREATE TABLE `userorder`  (
   `userorderIdFmoney` int(0) NOT NULL COMMENT '已经支付订金的金额',
   `userorderIdMmoney` int(0) NOT NULL COMMENT '应支付的尾款金额',
   PRIMARY KEY (`userorderId`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of userorder
