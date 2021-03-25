@@ -1,8 +1,7 @@
 package com.canteen.service;
 
-import com.canteen.entity.Menu;
+import com.canteen.entity.Menucomponent;
 import com.baomidou.mybatisplus.extension.service.IService;
-import org.apache.ibatis.annotations.Select;
 
 /**
  * <p>
@@ -10,7 +9,8 @@ import org.apache.ibatis.annotations.Select;
  * </p>
  *
  * @author 毕业设计
- * @since 2021-03-14
+ * @since 2021-03-23
  */
-public interface MenuService extends IService<Menu> {
+public interface MenucomponentService extends IService<Menucomponent> {
+
 }

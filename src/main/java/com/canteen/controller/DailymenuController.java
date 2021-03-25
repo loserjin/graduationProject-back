@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.canteen.common.lang.Result;
 import com.canteen.entity.Dailymenu;
 import com.canteen.entity.Menu;
+import com.canteen.mapper.DailymenuMapper;
 import com.canteen.service.DailymenuService;
 import com.canteen.service.MenuService;
 import com.canteen.util.ShiroUtils;
@@ -35,45 +36,33 @@ import java.time.format.DateTimeFormatter;
 public class DailymenuController {
     @Autowired
     DailymenuService dailymenuService;
-    @Autowired
-    MenuService menuService;
 
+    @Autowired
+    DailymenuMapper dailymenuMapper;
     //查询今日菜谱
     @RequiresAuthentication
     @GetMapping("/infos")
-    public Result list(
-            @RequestParam(defaultValue = "1") Integer current,
-            @RequestParam(defaultValue = "5") Integer size,
-            @RequestParam(defaultValue = "") String date,
-            @RequestParam(defaultValue = "0") Integer departmentfloorId){
+    public Result list(@RequestParam (defaultValue="1")Integer current,
+                       @RequestParam (defaultValue="5")Integer size,
+                       @RequestParam(defaultValue = "") Integer dailymenuId,
+                       @RequestParam (defaultValue = "")Integer departmentfloorId,
+                       @RequestParam (defaultValue = "")String menuName,
+                       @RequestParam(defaultValue = "") Integer typeId,
+                       @RequestParam(defaultValue = "") String date) {
         Page page = new Page(current, size);
-        if (departmentfloorId.intValue()==0) {
-            IPage pageDate = dailymenuService.page(page, new QueryWrapper<Dailymenu>().like("dailymenuCreatime",date));
-            return Result.succ(pageDate);
-        }else {
-            IPage pageDate = dailymenuService.page(page,new QueryWrapper<Dailymenu>().eq("departmentfloorId",departmentfloorId).like("dailymenuCreatime",date));
-            return Result.succ(pageDate);
-        }
+        IPage<Dailymenu> iPage = dailymenuMapper.querydailyClass(page, dailymenuId, departmentfloorId, menuName, typeId, date);
+        return Result.succ(iPage);
 
     }
-
-
 
     //增加今日菜品
 
     @RequiresAuthentication
-    @PostMapping("/edits")
+    @PostMapping("/edit")
 
-    public Result save(@RequestParam Integer menuId,
-                       @RequestParam (defaultValue = "") @DateTimeFormat (pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date) {
+    public Result save(@RequestBody Dailymenu dailymenu) {
         //将要导入的菜单ID信息寻找出来然后复制到每日菜单的表中
-        Dailymenu temp=new Dailymenu();
-       if (ShiroUtils.getProfile().getAdminRole().equals(1)||menuService.getById(menuId).getDepartmentfloorId().equals(ShiroUtils.getProfile().getDepartmentfloorId()))
-       {
-           BeanUtils.copyProperties(menuService.getById(menuId),temp,"adminName","adminId","menuCreatime");
-           temp.setDailymenuCreatime(date);
-       }
-        dailymenuService.saveOrUpdate(temp);
+        dailymenuService.save(dailymenu);
         return Result.succ(null);
     }
 

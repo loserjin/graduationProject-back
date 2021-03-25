@@ -1,5 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.canteen.mapper.MenuMapper">
+<mapper namespace="com.canteen.mapper.MenuMapper"><!--一对多查询关联-->
+    <resultMap id="getMenuComponentMap" type="com.canteen.entity.Menu">
+        <!-- 实体类属性对应数据库的主键字段，不然主键会查不到 -->
+        <id property="menuId" column="menuId"/>
+        <result property="menuName" column="menuName"/>
+        <result property="menuMoney" column="menuMoney"/>
+        <result property="menuFMoney" column="menuFMoney"/>
+        <result property="menuPic" column="menuPic"/>
+        <result property="departmentId" column="departmentId"/>
+        <result property="departmentName" column="departmentName"/>
+        <result property="departmentfloorId" column="departmentfloorId"/>
+        <result property="departmentfloorName" column="departmentfloorName"/>
+        <result property="typeId" column="typeId"/>
+        <result property="typeName" column="typeName"/>
+        <result property="adminId" column="adminId"/>
+        <result property="adminName" column="adminName"/>
+        <result property="menuCreatime" column="menuCreatime"/>
+        <!-- 用collection标签 ,也是实体类属性要对应数据库字段-->
+        <collection property="menucomponents" column="menuId" javaType="java.util.List"
+                    select="com.canteen.mapper.MenucomponentMapper.queryMenucomponentList"/>
+    </resultMap>
 
+    <select id="queryClass" resultMap="getMenuComponentMap">
+        SELECT * from menu
+        <where>
+            <if test="menuId!=null and menuId!=''">
+                and menuId=#{menuId}
+            </if>
+            <if test="departmentfloorId!=null and departmentfloorId!=''">
+                and departmentfloorId=#{departmentfloorId}
+            </if>
+            <if test="menuName!=null and menuName!=''">
+                <bind name="menuName" value="'%'+menuName+'%'"/>
+                and menuName like #{menuName}
+            </if>
+            <if test="typeId!=null and typeId!=''">
+                and typeId=#{typeId}
+            </if>
+        </where>
+    </select>
 </mapper>

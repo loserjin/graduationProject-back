@@ -31,6 +31,17 @@ public class AdminController {
     @Autowired
     AdminService adminService;
 
+
+    @RequiresAuthentication
+    @GetMapping("infos")
+    public Result list (@RequestParam (defaultValue="1")Integer current,
+                        @RequestParam (defaultValue="5")Integer size,
+                        @RequestParam (defaultValue = "")String adminName){
+        Page page = new Page(current,size);
+        IPage pageDate = adminService.page(page,new QueryWrapper<Admin>().eq("adminRole",0).like("adminName", adminName));
+        return Result.succ(pageDate);
+    }
+
     @RequiresAuthentication
     @GetMapping("/info")
     public Result index(@RequestParam Integer adminId){
@@ -60,15 +71,6 @@ public class AdminController {
 //        return Result.succ(null);
 //    }
 
-    @RequiresAuthentication
-    @GetMapping("infos")
-    public Result list (@RequestParam (defaultValue="1")Integer current,
-                        @RequestParam (defaultValue="5")Integer size,
-                        @RequestParam (defaultValue = "")String adminName){
-        Page page = new Page(current,size);
-        IPage pageDate = adminService.page(page,new QueryWrapper<Admin>().eq("adminRole",0).like("adminName", adminName));
-        return Result.succ(pageDate);
-    }
 
     @RequiresAuthentication
     @PostMapping("delect")

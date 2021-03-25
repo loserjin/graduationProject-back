@@ -1,5 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.canteen.mapper.DailymenuMapper">
+    <resultMap id="getDailymenuComponentMap" type="com.canteen.entity.Dailymenu">
+        <!-- 实体类属性对应数据库的主键字段，不然主键会查不到 -->
+        <id property="dailymenuId" column="dailymenuId"/>
+        <result property="menuId" column="menuId"/>
+        <result property="menuName" column="menuName"/>
+        <result property="menuMoney" column="menuMoney"/>
+        <result property="menuFMoney" column="menuFMoney"/>
+        <result property="menuPic" column="menuPic"/>
+        <result property="departmentId" column="departmentId"/>
+        <result property="departmentName" column="departmentName"/>
+        <result property="departmentfloorId" column="departmentfloorId"/>
+        <result property="departmentfloorName" column="departmentfloorName"/>
+        <result property="typeId" column="typeId"/>
+        <result property="typeName" column="typeName"/>
+        <result property="dailymenuCreatime" column="dailymenuCreatime"/>
+        <!-- 用collection标签 ,也是实体类属性要对应数据库字段-->
+        <collection property="menucomponents" column="menuId" javaType="java.util.List"
+                    select="com.canteen.mapper.MenucomponentMapper.queryMenucomponentList"/>
+    </resultMap>
 
+    <select id="querydailyClass" resultMap="getDailymenuComponentMap">
+        SELECT * from dailymenu
+        <where>
+            <if test="dailymenuId!=null and dailymenuId!=''">
+                and dailymenuId=#{dailymenuId}
+            </if>
+            <if test="departmentfloorId!=null and departmentfloorId!=''">
+                and departmentfloorId=#{departmentfloorId}
+            </if>
+            <if test="menuName!=null and menuName!=''">
+                <bind name="menuName" value="'%'+menuName+'%'"/>
+                and menuName like #{menuName}
+            </if>
+            <if test="typeId!=null and typeId!=''">
+                and typeId=#{typeId}
+            </if>
+            <if test="dailymenuCreatime!=null and dailymenuCreatime!=''">
+                <bind name="dailymenuCreatime" value="dailymenuCreatime+'%'"/>
+                and dailymenuCreatime like #{dailymenuCreatime}
+            </if>
+        </where>
+    </select>
 </mapper>
