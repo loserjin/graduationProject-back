@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AccountRealm extends AuthorizingRealm {
-
     @Autowired
     JwtUtils jwtUtils;
 
@@ -25,6 +24,11 @@ public class AccountRealm extends AuthorizingRealm {
     @Override
     public boolean supports(AuthenticationToken token) {
         return token instanceof JwtToken;
+    }
+
+    @Override
+    public  String getName(){
+        return "AccountRealm";
     }
 
     @Override

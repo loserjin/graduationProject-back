@@ -5,17 +5,19 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.canteen.common.lang.Result;
-import com.canteen.entity.Dailymenu;
-import com.canteen.entity.Purchase;
-import com.canteen.entity.Type;
+import com.canteen.entity.*;
+import com.canteen.service.AdminService;
 import com.canteen.service.PurchaseService;
 import com.canteen.service.TypeService;
+import com.canteen.util.JwtUtils;
 import com.canteen.util.ShiroUtils;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * <p>
@@ -30,22 +32,49 @@ import org.springframework.web.bind.annotation.*;
 public class TypeController {
     @Autowired
     TypeService typeService;
+    @Autowired
+    JwtUtils jwtUtils;
+    @Autowired
+    AdminService adminService;
 
     @RequiresAuthentication
     @GetMapping("/infos")
     public Result list(
             @RequestParam(defaultValue = "1") Integer current,
             @RequestParam(defaultValue = "5") Integer size,
-            @RequestParam(defaultValue = "0") Integer departmentfloorId){
+            @RequestParam(defaultValue = "0") Integer departmentId,
+            @RequestParam(defaultValue = "0") Integer departmentfloorId,
+            @RequestParam(defaultValue = "") String departmentfloorName,
+            @RequestParam(defaultValue = "") String departmentName,
+            HttpServletRequest request){
         Page page = new Page(current, size);
-        if (departmentfloorId.intValue()==0) {
-            IPage pageDate = typeService.page(page, new QueryWrapper<Type>());
-            return Result.succ(pageDate);
-        }else {
-            IPage pageDate = typeService.page(page,new QueryWrapper<Type>().eq("departmentfloorId",departmentfloorId));
+        String jwt=request.getHeader("Authorization");
+        Integer aadminId=Integer.parseInt(jwtUtils.getClaimByToken(jwt).getSubject());
+        Admin aadmin=adminService.getById(aadminId);
+        if (aadmin.getAdminRole().intValue()==1){
+            if (aadmin.getDepartmentId()==1){
+                IPage pageDate = typeService.page(page, new QueryWrapper<Type>()
+                        .eq(departmentId.intValue()!=0,"departmentId",departmentId)
+                        .eq(departmentfloorId.intValue()!=0,"departmentfloorId",departmentfloorId)
+                        .like("departmentName",departmentName)
+                        .like("departmentfloorName",departmentfloorName)
+                        .orderByAsc("departmentName")
+                        .orderByAsc("departmentfloorName"));
+                return Result.succ(pageDate);
+            }else {
+                IPage pageDate = typeService.page(page, new QueryWrapper<Type>()
+                        .eq("departmentId",aadmin.getDepartmentId())
+                        .eq(departmentfloorId.intValue()!=0,"departmentfloorId",departmentfloorId)
+                        .like("departmentfloorName",departmentfloorName)
+                        .orderByAsc("departmentfloorName"));
+                return  Result.succ(pageDate);
+            }
+        }else{
+            IPage pageDate = typeService.page(page, new QueryWrapper<Type>()
+                    .eq("departmentId",aadmin.getDepartmentId())
+                    .eq("departmentfloorId",aadmin.getDepartmentfloorId()));
             return Result.succ(pageDate);
         }
-
     }
 
     @RequiresAuthentication
@@ -58,68 +87,39 @@ public class TypeController {
 
     @RequiresAuthentication
     @PostMapping("/edit")
-    public Result save(@RequestBody Type type) {
-        //先判断记录是否存在，如果存在则判断是否超级管理员或者是自己部门的信息，true则可以更改，false则没有权限编辑
-        //                   如果不存在则判断是否超级管理员，是超级管理员则可以输入部门信息，不是超级管理员将自身的部门信息导入，
-        Type temp=null;
+    public Result save(@RequestBody Type type,
+                       HttpServletRequest request) {
 
-        //判断记录是否存在
-        if (type.getTypeId()!=null)
-        {
-            temp=typeService.getById(type.getTypeId());
-            //判断是否是自己部门的信息或者是超级管理员，是就有权限更改，否则判断错误
-            if ((temp.getDepartmentfloorId().equals(ShiroUtils.getProfile().getDepartmentfloorId()))||(ShiroUtils.getProfile().getDepartmentfloorId().equals(1)))
-            {
-                temp=new Type();
-                temp.setAdminId(ShiroUtils.getProfile().getAdminId());
-                temp.setAdminName(ShiroUtils.getProfile().getAdminName());
-                temp.setDepartmentId(typeService.getById(type.getTypeId()).getDepartmentId());
-                temp.setDepartmentName(typeService.getById(type.getTypeId()).getDepartmentName());
-                temp.setDepartmentfloorId(typeService.getById(type.getTypeId()).getDepartmentfloorId());
-                temp.setDepartmentfloorName(typeService.getById(type.getTypeId()).getDepartmentfloorName());
-                BeanUtils.copyProperties(type,temp,
-                        "adminId",
-                        "adminName",
-                        "departmentId",
-                        "departmentName",
-                        "departmentfloorId",
-                        "departmentfloorName");
-            }else{
-                return Result.fail("没有权限");
+        String jwt=request.getHeader("Authorization");
+        Integer aadminId=Integer.parseInt(jwtUtils.getClaimByToken(jwt).getSubject());
+        Admin aadmin=adminService.getById(aadminId);
+        if (aadmin.getAdminRole().intValue()==1){
+            //超级管理员
+            if (aadmin.getDepartmentId().intValue()==1){
+                type.setAdminName(aadmin.getAdminName());
+                type.setAdminId(aadmin.getAdminId());
+                typeService.saveOrUpdate(type);
+                return Result.succ("编辑成功");
+            }else {
+                //所属饭堂超级管理员
+                type.setAdminName(aadmin.getAdminName());
+                type.setAdminId(aadmin.getAdminId());
+                type.setDepartmentId(aadmin.getDepartmentId());
+                type.setDepartmentName(aadmin.getDepartmentName());
+                typeService.saveOrUpdate(type);
+                return Result.succ("编辑成功");
             }
-            //信息不存在则创建
         }else{
-            //判断是否为超级管理员
-            //是
-            if (ShiroUtils.getProfile().getAdminRole().equals(1)){
-                temp=new Type();
-                temp.setAdminId(ShiroUtils.getProfile().getAdminId());
-                temp.setAdminName(ShiroUtils.getProfile().getAdminName());
-                BeanUtils.copyProperties(type,temp,
-                        "adminId",
-                        "adminName",
-                        "purchaseCreatime",
-                        "purchaseId");
-            }else{
-                temp=new Type();
-                temp.setAdminId(ShiroUtils.getProfile().getAdminId());
-                temp.setAdminName(ShiroUtils.getProfile().getAdminName());
-                temp.setDepartmentId(ShiroUtils.getProfile().getDepartmentId());
-                temp.setDepartmentName(ShiroUtils.getProfile().getDepartmentName());
-                temp.setDepartmentfloorId(ShiroUtils.getProfile().getDepartmentfloorId());
-                temp.setDepartmentfloorName(ShiroUtils.getProfile().getDepartmentfloorName());
-                BeanUtils.copyProperties(type,temp,
-                        "adminId",
-                        "adminName",
-                        "departmentId",
-                        "departmentName",
-                        "departmentfloorId",
-                        "departmentfloorName");
-            }
+            //普通管理员
+            type.setAdminName(aadmin.getAdminName());
+            type.setAdminId(aadmin.getAdminId());
+            type.setDepartmentId(aadmin.getDepartmentId());
+            type.setDepartmentName(aadmin.getDepartmentName());
+            type.setDepartmentfloorId(aadmin.getDepartmentfloorId());
+            type.setDepartmentfloorName(aadmin.getDepartmentfloorName());
+            typeService.saveOrUpdate(type);
+            return Result.succ("编辑成功");
         }
-
-       typeService.saveOrUpdate(temp);
-        return Result.succ("null");
     }
     @RequiresAuthentication
     @PostMapping("delect")
@@ -131,6 +131,5 @@ public class TypeController {
             return Result.succ("null");
         }else
             return Result.fail("没有权限");
-
     }
 }

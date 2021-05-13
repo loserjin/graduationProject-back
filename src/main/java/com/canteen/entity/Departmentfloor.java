@@ -10,7 +10,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author 毕业设计
@@ -46,6 +46,12 @@ public class Departmentfloor implements Serializable {
      */
     @TableField("departmentName")
     private String departmentName;
+
+    /**
+     * 饭堂图片
+     */
+    @TableField("departmentfloorPic")
+    private String departmentfloorPic;
 
 
 }

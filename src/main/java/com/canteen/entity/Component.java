@@ -52,4 +52,8 @@ public class Component implements Serializable {
 
     @TableField("adminName")
     private String adminName;
+
+    //0荤类，1素类，2调料
+    @TableField("componentType")
+    private String componentType;
 }

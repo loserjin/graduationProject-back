@@ -1,20 +1,22 @@
 package com.canteen.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.TableField;
 import java.io.Serializable;
+import java.util.List;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author 毕业设计
- * @since 2021-03-14
+ * @since 2021-05-04
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -23,50 +25,80 @@ public class Userorder implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "userorderId", type = IdType.AUTO)
-    private Integer userorderId;
-
-    /**
-     * 所属用户名
-     */
-    @TableField("userName")
-    private String userName;
+    @TableId("userorderId")
+    private String userorderId;
 
     /**
      * 所属用户ID
      */
-    @TableField("userId")
-    private Integer userId;
-
-    /**
-     * 订单详情，包括菜名。价格。数量
-     */
-    @TableField("userorderDetail")
-    private String userorderDetail;
-
-    /**
-     * 0为未支付尾款，1为已支付尾款
-     */
-    @TableField("userorderStatus")
-    private Integer userorderStatus;
+    @TableField("openId")
+    private String openId;
 
     /**
      * 总价
      */
-    @TableField("userorderIdSmoney")
-    private Integer userorderIdSmoney;
+    @TableField("userorderSmoney")
+    private float userorderSmoney;
 
     /**
-     * 已经支付订金的金额
+     * 应支付订金的金额
      */
-    @TableField("userorderIdFmoney")
-    private Integer userorderIdFmoney;
+    @TableField("userorderFmoney")
+    private float userorderFmoney;
+
+    /**
+     * 订金状态，
+0为未支付订金，1为已支付订金，2为退订金，3退款
+     */
+    @TableField("userorderFStatus")
+    private Integer userorderFStatus;
 
     /**
      * 应支付的尾款金额
      */
-    @TableField("userorderIdMmoney")
-    private Integer userorderIdMmoney;
+    @TableField("userorderMmoney")
+    private float userorderMmoney;
+
+    /**
+     * 尾款状态，
+0为未支付尾款，1为已支付尾款
+     */
+    @TableField("userorderMStatus")
+    private Integer userorderMStatus;
+
+    @TableField("userorderCreatime")
+    private LocalDateTime userorderCreatime;
+
+    @TableField("useraddressId")
+    private Integer useraddressId;
+
+    @TableField("useraddressTel")
+    private String useraddressTel;
+
+    @TableField("useraddressName")
+    private String useraddressName;
+
+    private String useraddress;
+
+    private String gender;
+
+    @TableField("departmentId")
+    private Integer departmentId;
+
+    @TableField("departmentName")
+    private String departmentName;
+
+    @TableField("departmentfloorId")
+    private Integer departmentfloorId;
+
+    @TableField("departmentfloorName")
+    private String departmentfloorName;
+
+    @TableField("dailymenuTime")
+    private Integer dailymenuTime;
+
+    @TableField("dailymenuCreatime")
+    private LocalDateTime dailymenuCreatime;
 
 
 }

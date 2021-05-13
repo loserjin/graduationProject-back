@@ -21,9 +21,11 @@ import org.springframework.stereotype.Service;
 public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements MenuService {
     public IPage<Menu> selectMenuPage(Page<Menu> page,
                                       @Param("menuId") Integer menuId,
+                                      @Param("departmentId")Integer departmentId,
                                       @Param("departmentfloorId")Integer departmentfloorId,
-                                      @Param("menuName")String menuName,@Param("typeId")Integer typeId){
+                                      @Param("menuName")String menuName,
+                                      @Param("typeId")Integer typeId){
         MenuMapper menuMapper = null;
-        return menuMapper.queryClass(page,menuId,departmentfloorId,menuName,typeId);
+        return menuMapper.queryClass(page,menuId,departmentId,departmentfloorId,menuName,typeId);
     }
 }

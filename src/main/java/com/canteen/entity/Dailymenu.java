@@ -49,13 +49,13 @@ public class Dailymenu implements Serializable {
      * 菜的金额
      */
     @TableField("menuMoney")
-    private Integer menuMoney;
+    private float menuMoney;
 
     /**
      * 应付定金
      */
     @TableField("menuFMoney")
-    private Integer menuFMoney;
+    private float menuFMoney;
 
     /**
      * 菜的图片
@@ -99,6 +99,12 @@ public class Dailymenu implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @TableField("dailymenuCreatime")
     private LocalDateTime dailymenuCreatime;
+
+    /**
+     *  时段
+     */
+    @TableField("dailymenuTime")
+    private Integer dailymenuTime;
 
     /**
      * 配料

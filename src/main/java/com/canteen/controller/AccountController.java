@@ -35,8 +35,11 @@ public class AccountController {
         Admin admin=adminService.getOne(new QueryWrapper<Admin>().eq("adminName",loginDto.getAdminName()));
         Assert.notNull(admin,"用户不存在");
 
-        if (!admin.getAdminPwd().equals(loginDto.getAdminPwd())){
+        if (!admin.getAdminPwd().equals(SecureUtil.md5(loginDto.getAdminPwd()))){
             return  Result.fail("密码不正确");
+        }
+        if (!admin.getAdminRole().equals(loginDto.getAdminRole())){
+            return  Result.fail("管理员角色不正确");
         }
         String jwt=jwtUtils.generateToken(admin.getAdminId());
         response.setHeader("Authorization",jwt);

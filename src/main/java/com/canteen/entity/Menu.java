@@ -40,16 +40,16 @@ public class Menu implements Serializable {
     private String menuName;
 
     /**
-     * 实际金额
+     * 菜的金额
      */
     @TableField("menuMoney")
-    private Integer menuMoney;
+    private float menuMoney;
 
     /**
      * 应付定金
      */
     @TableField("menuFMoney")
-    private Integer menuFMoney;
+    private float menuFMoney;
 
     /**
      * 菜的图片

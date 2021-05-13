@@ -1,33 +1,34 @@
 package com.canteen.controller;
 
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.canteen.common.dto.DateDto;
+import com.canteen.common.dto.*;
 import com.canteen.common.lang.Result;
-import com.canteen.entity.Admin;
-import com.canteen.entity.Purchase;
-import com.canteen.service.AdminService;
-import com.canteen.service.PurchaseService;
-import com.canteen.util.ShiroUtils;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import org.apache.shiro.SecurityUtils;
+import com.canteen.entity.*;
+import com.canteen.entity.Component;
+import com.canteen.service.*;
+import com.canteen.util.JwtUtils;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
-import org.apache.shiro.subject.Subject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.Assert;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.websocket.SendHandler;
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.Date;
+import javax.servlet.http.HttpServletRequest;
+import java.awt.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import static javax.swing.UIManager.get;
+@Slf4j
 /**
  * <p>
  *  前端控制器
@@ -42,107 +43,200 @@ public class PurchaseController {
 
     @Autowired
     PurchaseService purchaseService;
+    @Autowired
+    DailymenuService dailymenuService;
+    @Autowired
+    DepartmentfloorService departmentfloorService;
+    @Autowired
+    UserorderdetailService userorderdetailService;
+    @Autowired
+    MenucomponentService menucomponentService;
+    @Autowired
+    JwtUtils jwtUtils;
+    @Autowired
+    AdminService adminService;
 
     @RequiresAuthentication
     @GetMapping("/infos")
     public Result list(
-            @RequestParam(defaultValue = "1") Integer current,
-            @RequestParam(defaultValue = "5") Integer size,
+//            @RequestParam(defaultValue = "1") Integer current,
+//            @RequestParam(defaultValue = "5") Integer size,
+            @RequestParam(defaultValue = "0") Integer wastestatus,
             @RequestParam(defaultValue = "") String date,
-                @RequestParam(defaultValue = "") String departmentName,
-            @RequestParam(defaultValue = "") String departmentfloorName) {
-        Page page = new Page(current, size);
-        IPage pageDate = purchaseService.page(page, new QueryWrapper<Purchase>().like("purchaseCreatime", date)
-                .like("departmentName",departmentName)
-                .like("departmentfloorName",departmentfloorName));
-        return Result.succ(pageDate);
-    }
+            @RequestParam(defaultValue = "0") Integer departmentId,
+            @RequestParam(defaultValue = "0") Integer departmentfloorId,
+            HttpServletRequest request) {
+        String jwt = request.getHeader("Authorization");
+        Integer aadminId = Integer.parseInt(jwtUtils.getClaimByToken(jwt).getSubject());
+        Admin aadmin = adminService.getById(aadminId);
 
-    @RequiresAuthentication
-    @GetMapping("/info")
-    public Result index(@RequestParam Integer purchaseId){
-        Purchase purchase= purchaseService.getById(purchaseId);
-        Assert.notNull(purchase,"该记录不存在");
-        return Result.succ(purchase);
-    }
-
-    @RequiresAuthentication
-    @PostMapping("/edit")
-    public Result save(@RequestBody Purchase purchase) {
-        //先判断记录是否存在，如果存在则判断是否超级管理员或者是自己部门的信息，true则可以更改，false则没有权限编辑
-        //                   如果不存在则判断是否超级管理员，是超级管理员则可以输入部门信息，不是超级管理员将自身的部门信息导入，
-        Purchase temp=null;
-
-        //判断记录是否存在
-        if (purchase.getPurchaseId()!=null)
-        {
-            temp=purchaseService.getById(purchase.getPurchaseId());
-            //判断是否是自己部门的信息或者是超级管理员，是就有权限更改，否则判断错误
-            if ((temp.getDepartmentfloorId().equals(ShiroUtils.getProfile().getDepartmentfloorId()))||(ShiroUtils.getProfile().getDepartmentfloorId().equals(1)))
-            {
-                temp=new Purchase();
-                temp.setAdminId(ShiroUtils.getProfile().getAdminId());
-                temp.setAdminName(ShiroUtils.getProfile().getAdminName());
-                temp.setDepartmentId(purchaseService.getById(purchase.getPurchaseId()).getDepartmentId());
-                temp.setDepartmentName(purchaseService.getById(purchase.getPurchaseId()).getDepartmentName());
-                temp.setDepartmentfloorId(purchaseService.getById(purchase.getPurchaseId()).getDepartmentfloorId());
-                temp.setDepartmentfloorName(purchaseService.getById(purchase.getPurchaseId()).getDepartmentfloorName());
-                BeanUtils.copyProperties(purchase,temp,
-                        "adminId",
-                        "adminName",
-                        "purchaseCreatime",
-                        "departmentId",
-                        "departmentName",
-                        "departmentfloorId",
-                        "departmentfloorName");
-            }else{
-                return Result.fail("没有权限");
+        if (aadmin.getDepartmentId().intValue() == 1) {
+            if (aadmin.getDepartmentfloorId().intValue() != 1) {
+                departmentId = aadmin.getDepartmentId();
             }
-            //信息不存在则创建
-        }else{
-            //判断是否为超级管理员
-            if (ShiroUtils.getProfile().getAdminRole().equals(1)){
-                temp=new Purchase();
-                temp.setAdminId(ShiroUtils.getProfile().getAdminId());
-                temp.setAdminName(ShiroUtils.getProfile().getAdminName());
-                BeanUtils.copyProperties(purchase,temp,
-                        "adminId",
-                        "adminName",
-                        "purchaseCreatime",
-                        "purchaseId");
-            }else{
-                temp=new Purchase();
-                temp.setAdminId(ShiroUtils.getProfile().getAdminId());
-                temp.setAdminName(ShiroUtils.getProfile().getAdminName());
-                temp.setDepartmentId(ShiroUtils.getProfile().getDepartmentId());
-                temp.setDepartmentName(ShiroUtils.getProfile().getDepartmentName());
-                temp.setDepartmentfloorId(ShiroUtils.getProfile().getDepartmentfloorId());
-                temp.setDepartmentfloorName(ShiroUtils.getProfile().getDepartmentfloorName());
-                BeanUtils.copyProperties(purchase,temp,
-                        "adminId",
-                        "purchaseId",
-                        "adminName",
-                        "purchaseCreatime",
-                        "departmentId",
-                        "departmentName",
-                        "departmentfloorId",
-                        "departmentfloorName");
-            }
+        } else {
+            departmentfloorId = aadmin.getDepartmentfloorId();
+            departmentId = aadmin.getDepartmentId();
         }
 
-        purchaseService.saveOrUpdate(temp);
-        return Result.succ("null");
-    }
-    @RequiresAuthentication
-    @PostMapping("delect")
-    public  Result delect(@RequestParam Integer purchaseId){
-        Purchase purchase=purchaseService.getById(purchaseId);
-        if (ShiroUtils.getProfile().getAdminRole().equals(1)||purchase.getDepartmentfloorId().equals(ShiroUtils.getProfile().getDepartmentfloorId())){
-            purchaseService.removeById(purchaseId);
-            Assert.notNull(purchase,"该条记录不存在");
-            return Result.succ("null");
-        }else
-            return Result.fail("没有权限");
+        ArrayList<PurchaseDto> purchaseDtos = new ArrayList<>();
+        List<AllCompoentDto> allCompoentDtos = new ArrayList<>();
 
+
+        //获取饭堂内的楼层
+        List<Departmentfloor> departmentfloors = departmentfloorService.list(new QueryWrapper<Departmentfloor>()
+                .eq("departmentId", departmentId)
+                .eq(departmentfloorId.intValue() != 0, "departmentfloorId", departmentfloorId));
+
+        ALLPurchaseDto allPurchaseDto = new ALLPurchaseDto();
+        allPurchaseDto.setDepartmentId(departmentfloors.get(0).getDepartmentId());
+        allPurchaseDto.setDepartmentName(departmentfloors.get(0).getDepartmentName());
+        //加入purchaseDtos中
+        for (Departmentfloor departmentfloor : departmentfloors) {
+            List<FloorCompoentDto> floorCompoentDtos = new ArrayList<>();
+            PurchaseDto purchaseDto = new PurchaseDto();
+
+            ArrayList<PurchaseDto.TimeDto> timeDtos = new ArrayList<>();
+            //设置purchaseDtos的数据展示方式
+            PurchaseDto.TimeDto timeDto0 = new PurchaseDto.TimeDto();
+            timeDto0.setTime("早餐");
+            timeDto0.setDailymenuTime(0);
+            timeDtos.add(0, timeDto0);
+            PurchaseDto.TimeDto timeDto1 = new PurchaseDto.TimeDto();
+            timeDto1.setTime("午餐");
+            timeDto1.setDailymenuTime(1);
+            timeDtos.add(1, timeDto1);
+            PurchaseDto.TimeDto timeDto2 = new PurchaseDto.TimeDto();
+            timeDto2.setTime("晚餐");
+            timeDto2.setDailymenuTime(2);
+            timeDtos.add(2, timeDto2);
+
+            for (PurchaseDto.TimeDto timeDto : timeDtos) {
+                //查找某饭堂某时段订单
+                List<TimeCompoentDto> timeCompoentDtos = new ArrayList<>();
+//                 List<Userorderdetail> userorderdetails=new ArrayList<>();
+//                 List<Dailymenu> dailymenus=null;
+                List<Userorderdetail> userorderdetails = userorderdetailService.list(new QueryWrapper<Userorderdetail>()
+                        //指定饭堂
+                        .eq("departmentId", departmentId)
+                        .eq("departmentfloorId", departmentfloor.getDepartmentfloorId())
+                        .eq("dailymenuTime", timeDto.getDailymenuTime())
+                        .eq("userorderFStatus", 1)
+                        //指定日期
+                        .like("dailymenuCreatime", date));
+                //根据条件查找饭堂内的某时段每日菜单，然后导入purchaseDto.data
+                List<Dailymenu> dailymenus = dailymenuService.list(new QueryWrapper<Dailymenu>()
+                        //指定饭堂
+                        .eq("departmentId", departmentId)
+                        .eq("departmentfloorId", departmentfloor.getDepartmentfloorId())
+                        .eq("dailymenuTime", timeDto.getDailymenuTime())
+                        //指定日期
+                        .like("dailymenuCreatime", date));
+                List<Component> components = new ArrayList<>();
+                List<Menumsg> menumsgs = new ArrayList<>();
+                //双循环查找List<Dailymenu> dailymenus符合条件的数据
+                for (Dailymenu dailymenu : dailymenus) {
+                    Menumsg menumsg = new Menumsg();
+                    Integer sum = 0;
+                    for (int j = 0; j < userorderdetails.size(); j++) {
+                        if (userorderdetails.get(j).getDailymenuId() == dailymenu.getDailymenuId()) {
+                            sum = sum + userorderdetails.get(j).getMenuTotal();
+                            ;
+                        }
+                    }
+                    menumsg.setNum(sum);
+                    menumsg.setMenuName(dailymenu.getMenuName());
+                    //收集配料数量
+                    List<Menucomponent> menucomponents = menucomponentService.list(new QueryWrapper<Menucomponent>()
+                            .eq("menuId", dailymenu.getMenuId()));
+                    List<MenuCompoentDto> menuCompoentDtos = new ArrayList<>();
+                    for (Menucomponent menucomponent : menucomponents) {
+                        MenuCompoentDto menuCompoentDto = new MenuCompoentDto();
+                        menuCompoentDto.setComponentName(menucomponent.getComponentName());
+                        menuCompoentDto.setComponentNum(menucomponent.getComponentNum());
+                        menuCompoentDto.setComponentId(menucomponent.getComponentId());
+                        menuCompoentDtos.add(menuCompoentDto);
+                    }
+                    menumsg.setComponent(menuCompoentDtos);
+                    menumsgs.add(menumsg);
+//                     time配料信息,取出配料内的数据成一个列表，算出某个时段需要的配料
+                    for (MenuCompoentDto menuCompoentDto : menuCompoentDtos) {
+                        Integer flag = 0;
+                        for (int i = 0; i < timeCompoentDtos.size(); i++) {
+                            if (timeCompoentDtos.get(i).getComponentId().intValue() == menuCompoentDto.getComponentId().intValue()) {
+                                float num = timeCompoentDtos.get(i).getComponentNum();
+                                float num1 = menuCompoentDto.getComponentNum() * menumsg.getNum();
+                                timeCompoentDtos.get(i).setComponentNum(num1 + num);
+                                flag = 1;
+                            }
+                        }
+                        if (flag == 0) {
+                            float num = menuCompoentDto.getComponentNum() * menumsg.getNum();
+                            TimeCompoentDto timeCompoentDto = new TimeCompoentDto();
+                            timeCompoentDto.setComponentId(menuCompoentDto.getComponentId());
+                            timeCompoentDto.setComponentName(menuCompoentDto.getComponentName());
+                            timeCompoentDto.setComponentNum(num);
+                            timeCompoentDtos.add(timeCompoentDto);
+                        }
+                    }
+
+                }
+
+                timeDto.setMenumsg(menumsgs);
+                timeDto.setComponentmsg(timeCompoentDtos);
+                //floor配料数据循环去重放进饭堂信息
+                for (TimeCompoentDto timeCompoentDto : timeCompoentDtos) {
+                    Integer flag = 0;
+                    for (int i = 0; i < floorCompoentDtos.size(); i++) {
+                        if (floorCompoentDtos.get(i).getComponentId().intValue() == timeCompoentDto.getComponentId().intValue()) {
+                            float num = floorCompoentDtos.get(i).getComponentNum();
+                            float num1 = timeCompoentDto.getComponentNum();
+                            floorCompoentDtos.get(i).setComponentNum(num1 + num);
+                            flag = 1;
+                        }
+                    }
+                    if (flag == 0) {
+                        FloorCompoentDto floorCompoentDto = new FloorCompoentDto();
+                        floorCompoentDto.setComponentId(timeCompoentDto.getComponentId());
+                        floorCompoentDto.setComponentName(timeCompoentDto.getComponentName());
+                        floorCompoentDto.setComponentNum(timeCompoentDto.getComponentNum());
+                        floorCompoentDtos.add(floorCompoentDto);
+                    }
+                }
+            }
+            //全部配料统计
+            for (FloorCompoentDto floorCompoentDto : floorCompoentDtos) {
+                Integer flag = 0;
+                for (int i = 0; i < allCompoentDtos.size(); i++) {
+                    if (allCompoentDtos.get(i).getComponentId().intValue() == floorCompoentDto.getComponentId().intValue()) {
+                        float num = allCompoentDtos.get(i).getComponentNum();
+                        float num1 = floorCompoentDto.getComponentNum();
+                        allCompoentDtos.get(i).setComponentNum(num1 + num);
+                        flag = 1;
+                    }
+                }
+                if (flag == 0) {
+                    AllCompoentDto allCompoentDto = new AllCompoentDto();
+                    allCompoentDto.setComponentId(floorCompoentDto.getComponentId());
+                    allCompoentDto.setComponentName(floorCompoentDto.getComponentName());
+                    allCompoentDto.setComponentNum(floorCompoentDto.getComponentNum());
+                    allCompoentDtos.add(allCompoentDto);
+                }
+            }
+
+            purchaseDto.setFloorcompoent(floorCompoentDtos);
+            purchaseDto.setDetaildata(timeDtos);
+            BeanUtils.copyProperties(departmentfloor, purchaseDto);
+            purchaseDtos.add(purchaseDto);
+        }
+        allPurchaseDto.setData(purchaseDtos);
+        allPurchaseDto.setAllcompoent(allCompoentDtos);
+
+        return Result.succ(allPurchaseDto);
+
+//        return Result.succ(table);
     }
+
+
 }
+

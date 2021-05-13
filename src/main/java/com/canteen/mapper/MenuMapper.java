@@ -31,6 +31,7 @@ public interface MenuMapper extends BaseMapper<Menu> {
 
     IPage<Menu> queryClass(Page<Menu> page,
                            @Param("menuId") Integer menuId,
+                           @Param("departmentId")Integer departmentId,
                            @Param("departmentfloorId")Integer departmentfloorId,
                            @Param("menuName")String menuName,
                            @Param("typeId")Integer typeId);

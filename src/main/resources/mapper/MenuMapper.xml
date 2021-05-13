@@ -16,7 +16,6 @@
         <result property="typeName" column="typeName"/>
         <result property="adminId" column="adminId"/>
         <result property="adminName" column="adminName"/>
-        <result property="menuCreatime" column="menuCreatime"/>
         <!-- 用collection标签 ,也是实体类属性要对应数据库字段-->
         <collection property="menucomponents" column="menuId" javaType="java.util.List"
                     select="com.canteen.mapper.MenucomponentMapper.queryMenucomponentList"/>
@@ -30,6 +29,9 @@
             </if>
             <if test="departmentfloorId!=null and departmentfloorId!=''">
                 and departmentfloorId=#{departmentfloorId}
+            </if>
+            <if test="departmentId!=null and departmentId!=''">
+                and departmentId=#{departmentId}
             </if>
             <if test="menuName!=null and menuName!=''">
                 <bind name="menuName" value="'%'+menuName+'%'"/>

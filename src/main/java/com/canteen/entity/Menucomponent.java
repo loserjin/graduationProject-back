@@ -10,7 +10,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author 毕业设计
@@ -42,7 +42,17 @@ public class Menucomponent implements Serializable {
     private Float componentMoney;
 
     @TableField("componentNum")
-    private Integer componentNum;
+    private Float componentNum;
+
+    /**
+     * 配料图片
+     */
+    @TableField("componentPic")
+    private String componentPic;
+
+    //0荤类，1素类，2调料
+    @TableField("componentType")
+    private String componentType;
 
 
 }

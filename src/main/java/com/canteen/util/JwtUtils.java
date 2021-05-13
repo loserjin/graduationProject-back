@@ -34,7 +34,22 @@ public class JwtUtils {
 
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
+
                 .setSubject(adminId+"")
+                .setIssuedAt(nowDate)
+                .setExpiration(expireDate)
+                .signWith(SignatureAlgorithm.HS512, secret)
+                .compact();
+    }
+    public String generateToken(String openid) {
+        Date nowDate = new Date();
+        //过期时间
+        Date expireDate = new Date(nowDate.getTime() + expire * 1000);
+
+        return Jwts.builder()
+                .setHeaderParam("typ", "JWT")
+
+                .setSubject(openid+"")
                 .setIssuedAt(nowDate)
                 .setExpiration(expireDate)
                 .signWith(SignatureAlgorithm.HS512, secret)

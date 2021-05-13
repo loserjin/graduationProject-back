@@ -16,6 +16,7 @@
         <result property="typeId" column="typeId"/>
         <result property="typeName" column="typeName"/>
         <result property="dailymenuCreatime" column="dailymenuCreatime"/>
+        <result property="dailymenuTime" column="dailymenuTime"/>
         <!-- 用collection标签 ,也是实体类属性要对应数据库字段-->
         <collection property="menucomponents" column="menuId" javaType="java.util.List"
                     select="com.canteen.mapper.MenucomponentMapper.queryMenucomponentList"/>
@@ -36,6 +37,9 @@
             </if>
             <if test="typeId!=null and typeId!=''">
                 and typeId=#{typeId}
+            </if>
+            <if test="dailymenuTime!=null and dailymenuTime!=''">
+                and dailymenuTime=#{dailymenuTime}
             </if>
             <if test="dailymenuCreatime!=null and dailymenuCreatime!=''">
                 <bind name="dailymenuCreatime" value="dailymenuCreatime+'%'"/>

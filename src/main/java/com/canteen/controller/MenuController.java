@@ -5,13 +5,17 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.canteen.common.lang.Result;
+import com.canteen.entity.Admin;
 import com.canteen.entity.Departmentfloor;
 import com.canteen.entity.Menu;
 import com.canteen.entity.Purchase;
 import com.canteen.mapper.MenuMapper;
+import com.canteen.service.AdminService;
 import com.canteen.service.DepartmentfloorService;
 import com.canteen.service.MenuService;
 import com.canteen.service.MenucomponentService;
+import com.canteen.shiro.JwtFilter;
+import com.canteen.util.JwtUtils;
 import com.canteen.util.ShiroUtils;
 import org.apache.ibatis.jdbc.Null;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
@@ -21,6 +25,7 @@ import org.springframework.ui.Model;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -40,19 +45,39 @@ public class MenuController {
     MenucomponentService menucomponentService;
     @Autowired
     MenuMapper menuMapper;
+    @Autowired
+    JwtUtils jwtUtils;
+    @Autowired
+    AdminService adminService;
 
     @RequiresAuthentication
     @RequestMapping("/infos")
     public Result list(@RequestParam (defaultValue="1")Integer current,
                        @RequestParam (defaultValue="5")Integer size,
                        @RequestParam(defaultValue = "") Integer menuId,
+                       @RequestParam (defaultValue = "")Integer departmentId,
                        @RequestParam (defaultValue = "")Integer departmentfloorId,
                        @RequestParam (defaultValue = "")String menuName,
-                       @RequestParam(defaultValue = "") Integer typeId){
+                       @RequestParam(defaultValue = "") Integer typeId,
+                       HttpServletRequest request){
         Page page = new Page(current,size);
-        IPage<Menu> iPage = menuMapper.queryClass(page,menuId,departmentfloorId,menuName,typeId);
-
-        return Result.succ(iPage);
+        String jwt=request.getHeader("Authorization");
+        Integer aadminId=Integer.parseInt(jwtUtils.getClaimByToken(jwt).getSubject());
+        Admin aadmin=adminService.getById(aadminId);
+        if (aadmin.getAdminRole().intValue()==1){
+            if (aadmin.getDepartmentId().intValue()==1){
+                IPage<Menu> iPage = menuMapper.queryClass(page,menuId,departmentId,departmentfloorId,menuName,typeId);
+                return Result.succ(iPage);
+            }else {
+                departmentId=aadmin.getDepartmentId();
+                IPage<Menu> iPage = menuMapper.queryClass(page,menuId,departmentId,departmentfloorId,menuName,typeId);
+                return Result.succ(iPage);
+            }
+        }else {
+            departmentfloorId=aadmin.getDepartmentfloorId();
+            IPage<Menu> iPage = menuMapper.queryClass(page,menuId,departmentId,departmentfloorId,menuName,typeId);
+            return Result.succ(iPage);
+        }
     }
 
     //查询菜谱内某个菜的信息
@@ -67,81 +92,53 @@ public class MenuController {
     //编辑总菜谱资料
     @RequiresAuthentication
     @PostMapping("/edit")
-    public Result save(@RequestBody Menu menu) {
-        //先判断记录是否存在，如果存在则判断是否超级管理员或者是自己部门的信息，true则可以更改，false则没有权限编辑
-        //                   如果不存在则判断是否超级管理员，是超级管理员则可以输入部门信息，不是超级管理员将自身的部门信息导入，
-        Menu temp=null;
-
-        //判断记录是否存在
-        if (menuService.getById(menu.getMenuId())!=null)
-        {
-            temp=menuService.getById(menu.getMenuId());
-            //判断是否是自己部门的信息或者是超级管理员，是就有权限更改，否则判断错误
-            if ((temp.getDepartmentfloorId().equals(ShiroUtils.getProfile().getDepartmentfloorId()))||(ShiroUtils.getProfile().getDepartmentfloorId().equals(1)))
-            {
-                temp=new Menu();
-                temp.setAdminId(ShiroUtils.getProfile().getAdminId());
-                temp.setAdminName(ShiroUtils.getProfile().getAdminName());
-                temp.setDepartmentId(menuService.getById(menu.getMenuId()).getDepartmentId());
-                temp.setDepartmentName(menuService.getById(menu.getMenuId()).getDepartmentName());
-                temp.setDepartmentfloorId(menuService.getById(menu.getMenuId()).getDepartmentfloorId());
-                temp.setDepartmentfloorName(menuService.getById(menu.getMenuId()).getDepartmentfloorName());
-                BeanUtils.copyProperties(menu,temp,
-                        "adminId",
-                        "adminName",
-                        "menuCreatime",
-                        "departmentId",
-                        "departmentName",
-                        "departmentfloorId",
-                        "departmentfloorName");
-            }else{
-                return Result.fail("没有权限");
+    public Result save(@RequestBody Menu menu,
+                       HttpServletRequest request) {
+        String jwt=request.getHeader("Authorization");
+        Integer aadminId=Integer.parseInt(jwtUtils.getClaimByToken(jwt).getSubject());
+        Admin aadmin=adminService.getById(aadminId);
+        if (aadmin.getAdminRole().intValue()==1){
+            //超级管理员
+            if (aadmin.getDepartmentId().intValue()==1){
+                menu.setAdminName(aadmin.getAdminName());
+                menu.setAdminId(aadmin.getAdminId());
+                menuService.saveOrUpdate(menu);
+                return Result.succ("编辑成功");
+            }else {
+                //所属饭堂超级管理员
+                menu.setAdminName(aadmin.getAdminName());
+                menu.setAdminId(aadmin.getAdminId());
+                menu.setDepartmentId(aadmin.getDepartmentId());
+                menu.setDepartmentName(aadmin.getDepartmentName());
+                menuService.saveOrUpdate(menu);
+                return Result.succ("编辑成功");
             }
-            //信息不存在则创建
         }else{
-            //判断是否为超级管理员
-            if (ShiroUtils.getProfile().getAdminRole().equals(1)){
-                temp=new Menu();
-                temp.setAdminId(ShiroUtils.getProfile().getAdminId());
-                temp.setAdminName(ShiroUtils.getProfile().getAdminName());
-                BeanUtils.copyProperties(menu,temp,
-                        "adminId",
-                        "adminName",
-                        "menuCreatime",
-                        "menuId");
-            }else{
-                temp=new Menu();
-                temp.setAdminId(ShiroUtils.getProfile().getAdminId());
-                temp.setAdminName(ShiroUtils.getProfile().getAdminName());
-                temp.setDepartmentId(ShiroUtils.getProfile().getDepartmentId());
-                temp.setDepartmentName(ShiroUtils.getProfile().getDepartmentName());
-                temp.setDepartmentfloorId(ShiroUtils.getProfile().getDepartmentfloorId());
-                temp.setDepartmentfloorName(ShiroUtils.getProfile().getDepartmentfloorName());
-                BeanUtils.copyProperties(menu,temp,
-                        "adminId",
-                        "menuId",
-                        "adminName",
-                        "menuCreatime",
-                        "departmentId",
-                        "departmentName",
-                        "departmentfloorId",
-                        "departmentfloorName");
-            }
+            //普通管理员
+            menu.setAdminName(aadmin.getAdminName());
+            menu.setAdminId(aadmin.getAdminId());
+            menu.setDepartmentId(aadmin.getDepartmentId());
+            menu.setDepartmentName(aadmin.getDepartmentName());
+            menu.setDepartmentfloorId(aadmin.getDepartmentfloorId());
+            menu.setDepartmentfloorName(aadmin.getDepartmentfloorName());
+            menuService.saveOrUpdate(menu);
+            return Result.succ("编辑成功");
         }
-
-        menuService.saveOrUpdate(temp);
-        return Result.succ("null");
     }
 
 
     @RequiresAuthentication
     @PostMapping("delect")
-    public  Result delect(@RequestParam Integer menuId){
-        if (ShiroUtils.getProfile().getAdminRole().equals(1)||menuService.getById(menuId).getDepartmentfloorId().equals(ShiroUtils.getProfile().getDepartmentfloorId())){
-            Menu menu = menuService.getById(menuId);
+    public  Result delect(@RequestParam Integer menuId,
+                          HttpServletRequest request) {
+        String jwt=request.getHeader("Authorization");
+        Integer aadminId=Integer.parseInt(jwtUtils.getClaimByToken(jwt).getSubject());
+        Admin aadmin=adminService.getById(aadminId);
+        Menu menu = menuService.getById(menuId);
+        if (aadmin.getAdminRole().intValue()==1||menu.getDepartmentfloorId().intValue()==aadmin.getDepartmentfloorId().intValue()){
             menuService.removeById(menuId);
             Assert.notNull(menu,"该条记录不存在");
-            return Result.succ("null");
+            return Result.succ("删除成功");
         } else
             return Result.fail("没有权限");
 

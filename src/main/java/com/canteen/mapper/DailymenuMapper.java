@@ -21,6 +21,7 @@ public interface DailymenuMapper extends BaseMapper<Dailymenu> {
                                 @Param("departmentfloorId")Integer departmentfloorId,
                                 @Param("menuName")String menuName,
                                 @Param("typeId")Integer typeId,
-                                @Param("dailymenuCreatime")String dailymenuCreatime);
+                                @Param("dailymenuCreatime")String dailymenuCreatime,
+                                     @Param("dailymenuTime")Integer dailymenuTime);
 
 }

@@ -26,9 +26,10 @@ public class DailymenuServiceImpl extends ServiceImpl<DailymenuMapper, Dailymenu
                                                 @Param("departmentfloorId")Integer departmentfloorId,
                                                 @Param("menuName")String menuName,
                                                 @Param("typeId")Integer typeId,
-                                                @Param("dailymenuCreatime")String dailymenuCreatime){
+                                                @Param("dailymenuCreatime")String dailymenuCreatime,
+                                                @Param("dailymenuTime")Integer dailymenuTime){
         DailymenuMapper dailymenuMapper=null;
-        return dailymenuMapper.querydailyClass(page,menuId,departmentfloorId,menuName,typeId,dailymenuCreatime);
+        return dailymenuMapper.querydailyClass(page,menuId,departmentfloorId,menuName,typeId,dailymenuCreatime,dailymenuTime);
     }
 
 }

@@ -45,6 +45,8 @@ public class MenucomponentController {
        List<Menucomponent> menucomponents= menucomponentMapper.selectList(new QueryWrapper<Menucomponent>().eq("menuId",menuId.intValue()));
        return Result.succ(menucomponents);
     }
+
+//    //查询单个配料
 //    @RequiresAuthentication
 //    @GetMapping("/info")
 //    public Result index(@RequestParam Integer componentId){
@@ -52,15 +54,15 @@ public class MenucomponentController {
 //        Assert.notNull(component,"该记录不存在");
 //        return Result.succ(component);
 //    }
-//
-    //增加配料资料
+
+    //增加或修改配料资料
 
     @RequiresAuthentication
     @PostMapping("/edit")
     public Result save(@RequestBody Menucomponent menucomponent) {
     //将要导入的菜单ID信息寻找出来然后复制到每日菜单的表中
         menucomponentService.saveOrUpdate(menucomponent);
-    return Result.succ(null);
+    return Result.succ("编辑成功");
 }
 
 
